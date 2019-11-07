@@ -49,11 +49,11 @@ class GeneSequencing:
 		# print(score)
 		# sequencer.reverseStrings()
 		
-		# for i in range(len(sequences)):
-		for i in range(2):
+		for i in range(len(sequences)):
+		# for i in range(1):
 			jresults = []
-			# for j in range(len(sequences)):
-			for j in range(2):
+			for j in range(len(sequences)):
+			# for j in range(2):
 
 				if(j < i):
 					s = {}
@@ -68,11 +68,30 @@ class GeneSequencing:
 # your code should replace these three statements and populate the three variables: score, alignment1 and alignment2
 					if banded:
 						sequencer = BandedSequencer(sequences[i][:align_length], sequences[j][:align_length])
-						s = {'align_cost':1, 'seqi_first100':"", 'seqj_first100':""}
-						# print("filling band")
-						# sequencer.fill()
-						# print("done filling band")
-						sequencer.printBand()
+						# sequencer.printBand()
+						print("filling band")
+						sequencer.fill()
+						print("done filling band")
+						# sequencer.printBand()
+						sequencer.build()
+						alignment1 = sequencer.iString
+						alignment2 = sequencer.jString
+						score = sequencer.score
+
+						if(len(alignment1) - len(alignment2)) > 100:
+							alignment1 = "No Alignment Possible"
+							alignment2 = "No Alignment Possible"
+							score = math.inf
+						else:
+							if(len(alignment1) > 100):
+								alignment1 = alignment1[:100]
+							alignment2 = sequencer.jString
+							if(len(alignment2) > 100):
+								alignment2 = alignment2[:100]
+						
+						s = {'align_cost':score, 'seqi_first100':alignment1, 'seqj_first100':alignment2}
+						table.item(i,j).setText('{}'.format(int(score) if score != math.inf else score))
+						table.update()
 					else:
 						sequencer = UnbandedSequencer(sequences[i][:align_length], sequences[j][:align_length])
 						# print(sequencer.seq1)

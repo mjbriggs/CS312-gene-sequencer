@@ -19,13 +19,13 @@ class BandedSequencer:
         self.colEntries = "-" + self.seq1
         self.rowEntries = "-" + self.seq2
 
-        self.iString = self.seq1
-        self.jString = self.seq2
+        self.iString = self.colEntries
+        self.jString = self.rowEntries
         # self.seq1 = "-" + self.seq1
         # self.seq2 = "-" + self.seq2
         
         self.score = 0
-        self.maxBand = 6
+        self.maxBand = 7
 
         self.currentDirection = LEFT
         # # print("building tables")
@@ -36,7 +36,7 @@ class BandedSequencer:
         self.directions = [[]]
         # # print("built dir table")
         self.initBand()
-        self.printBand()
+        # self.printBand()
 
     def initBand(self):
         self.currentI = 0
@@ -44,18 +44,18 @@ class BandedSequencer:
         self.buildRow1()
 
         self.buildRow2()
-        self.band.append([math.inf])
-
-        self.directions.append([None])
+        
+        self.buildRow3()
 
 
     def printBand(self):
-        for row in self.band:
-            print(row)
-        for row in self.directions:
-            print(row)
+        print("seqI : ", self.seq1, " \n seqJ : ", self.seq2)
+        for row in range(len(self.band)):
+            print(self.band[row])
+            print(self.directions[row])
 
     def diff(self, rowJ, colI):
+        # print("at j ", self.rowEntries[rowJ], ", at i ", self.colEntries[colI])
         if self.rowEntries[rowJ] == self.colEntries[colI]:
             return MATCH
         else:
@@ -63,21 +63,24 @@ class BandedSequencer:
 
     # also sets values in directions array
     def minimum(self, diagonal, left, top, rowJ, colI, seqI):
-        print("left ", left, ",top ", top, ",diagonal ", diagonal)
+        # print("left ", left, ",top ", top, ",diagonal ", diagonal)
         minCalc = math.inf
+        direction = None
         if left != None:
             minCalc = left + INDEL
-            self.directions[rowJ].append(LEFT)
+            direction = LEFT
+        
+        # print(self.directions[rowJ])
 
         if top != None and top + INDEL < minCalc:
             minCalc = top + INDEL
-            self.directions[rowJ][colI] = TOP
+            direction = TOP
 
-        if diagonal != None and self.diff(rowJ, self.currentI) + diagonal < minCalc:
+        if diagonal != None and self.diff(rowJ, seqI) + diagonal < minCalc:
             minCalc = self.diff(rowJ, seqI) + diagonal
-            self.directions[rowJ][colI] = DIAGONAL
+            direction = DIAGONAL
         
-        return minCalc
+        return minCalc, direction
 
     def buildRow1(self):
         self.band[0].append(math.inf)
@@ -103,71 +106,148 @@ class BandedSequencer:
         bandIndex = 2
         seqIndex = 0
 
-        while bandIndex <= self.maxBand:
+        while bandIndex < self.maxBand:
             left = None
             top = None
             diagonal = None
             if self.band[1][bandIndex - 1] != None:
                 left = self.band[1][bandIndex - 1] 
-                print("setting left")
+                # print("setting left")
             if bandIndex < 6:
                 top = self.band[0][bandIndex + 1] #top in band is upper right entry 
-                print("setting top")
+                # print("setting top")
             if self.band[0][bandIndex] != None:
                 diagonal = self.band[0][bandIndex] #diagonal in band is entry above 
-                print("setting diagonal")
+                # print("setting diagonal")
     
             # print("appending ",  self.minimum(diagonal, left, top, 1, bandIndex, seqIndex))
-            self.band[1].append(self.minimum(diagonal, left, top, 1, bandIndex, seqIndex))
-            print("new row is ", self.band[1])
-            print("new dir row is ", self.directions[1])
+            val, dir = self.minimum(diagonal, left, top, 1, bandIndex, seqIndex)
+            self.band[1].append(val)
+            self.directions[1].append(dir)
+            # print("new row is ", self.band[1])
+            # print("new dir row is ", self.directions[1])
+
+            
+            bandIndex += 1 
+            seqIndex += 1
+
+    def buildRow3(self):
+        self.band.append([math.inf])
+        self.directions.append([None])
+
+        bandIndex = 1
+        seqIndex = 0
+
+        while bandIndex < self.maxBand:
+            left = None
+            top = None
+            diagonal = None
+            if self.band[2][bandIndex - 1] != None:
+                left = self.band[2][bandIndex - 1] 
+                # print("setting left")
+            if bandIndex < 6:
+                top = self.band[1][bandIndex + 1] #top in band is upper right entry 
+                # print("setting top")
+            if self.band[1][bandIndex] != None:
+                diagonal = self.band[1][bandIndex] #diagonal in band is entry above 
+                # print("setting diagonal")
+    
+            # print("appending ",  self.minimum(diagonal, left, top, 1, bandIndex, seqIndex))
+            val, dir = self.minimum(diagonal, left, top, 2, bandIndex, seqIndex)
+            self.band[2].append(val)
+            self.directions[2].append(dir)
+            # print("new row is ", self.band[2])
+            # print("new dir row is ", self.directions[2])
 
             
             bandIndex += 1 
             seqIndex += 1
 
 
-
-
     #problems with initialization
     def fill(self):
-        j = 1
+        j = 3
+        # print(self.rowEntries, " ", self.colEntries)
         while j < len(self.rowEntries):
-            if j > 2:
-                self.band.append([])
-                self.directions.append([])
-            if j > 3:
-                self.currentI += 1
-            print("curent row ", self.band[j])
-            markedIndices = len(self.band[j]) - 1
-            bandLen = self.maxBand - markedIndices
+            self.band.append([])
+            self.directions.append([])
+            # print("curent row ", self.band[j])
             # doesn't start at next open index, it looks at what is already there, which is infinity so it breaks
             for x in range(self.maxBand):
-                if x < markedIndices:
-                    continue
-                else: 
-                    y = x + self.currentI
-                    left = None
-                    top = None
-                    diagonal = None
-                    print("j : ", j, ", y : ", y, ", x : ", x, ", currentI : ", self.currentI)
-                    if y < len(self.colEntries):
-                        if x > 0 and self.band[j][x - 1] != None:
-                            left = self.band[j][x - 1] 
-                            print("setting left")
-                        if x < 6 and j > 0:
-                            top = self.band[j - 1][x + 1] #top in band is upper right entry 
-                            print("setting top")
-                        if j > 0 and self.band[j - 1][x] != None:
-                            diagonal = self.band[j - 1][x] #diagonal in band is entry above 
-                            print("setting diagonal")
-                
-                        print("appending ",  self.minimum(diagonal, left, top, j, x))
-                        self.band[j].append(self.minimum(diagonal, left, top, j, x))
-                        print("new row is ", self.band[j])
-                    else:
-                        self.band[j].append(math.inf)
+                y = x + self.currentI
+                left = None
+                top = None
+                diagonal = None
+                # print("j : ", j, ", y : ", y, ", x : ", x, ", currentI : ", self.currentI)
+                if y < len(self.colEntries):
+                    if x > 0 and self.band[j][x - 1] != None:
+                        left = self.band[j][x - 1] 
+                        # print("setting left")
+                    if x < 6 and j > 0:
+                        # print(self.band[j - 1])
+                        top = self.band[j - 1][x + 1] #top in band is upper right entry 
+                        # print("setting top")
+                    if j > 0 and self.band[j - 1][x] != None:
+                        diagonal = self.band[j - 1][x] #diagonal in band is entry above 
+                        # print("setting diagonal")
+            
+                    # print("appending ",  self.minimum(diagonal, left, top, j, x))
+                    val, dir = self.minimum(diagonal, left, top, j, x, y)
+                    self.band[j].append(val)
+                    self.directions[j].append(dir)
+                    # print("new row is ", self.band[j])
+                else:
+                    self.band[j].append(math.inf)
             j += 1
+            self.currentI += 1
+    
+    def build(self):
+        row = len(self.rowEntries) - 1
+        # print(" last row ", self.band[len(self.band) - 1])
+        col = len(self.directions[len(self.directions) - 1]) - 1
+        seqI = len(self.colEntries) - 1
+        self.score = self.band[row][col]
+        # print("score is ", self.score)
+        print("building")
+        while row >= 0 and seqI >= 0:
+            # print("row ", row, " val ", self.rowEntries[row],  ", seqI ", seqI, " val ", self.colEntries[seqI], " col ", col)
+            
+            if seqI >= len(self.colEntries):
+                seqI = len(self.colEntries) - 1
+            elif seqI < 0:
+                seqI = 0
+
+            dir = self.directions[row][col]
+            # print("direction : ", dir)
+
+            if dir == TOP:
+                self.iString = self.iString[:seqI] + "-" + self.iString[seqI:]
+                row -= 1
+                col += 1
+            elif dir == LEFT:
+                self.jString = self.jString[:row] + "-" + self.jString[row:]
+                seqI -= 1
+                col -= 1
+            else:
+                seqI -= 1
+                row -= 1
+
+            if row < 0 and seqI >=0:
+                row = 0
+            if row >= 0 and seqI < 0:
+                seqI = 0
+
+            if col >= 7:
+                col = self.maxBand - 1
+            elif col < 0:
+                col = 0
+        
+        print("done building")
+        self.iString = self.iString[1:]
+        self.jString = self.jString[1:]
+        print("iStr is ", self.iString)
+        print("jStr is ", self.jString)
+
 
 
                     
