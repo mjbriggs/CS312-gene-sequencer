@@ -3,6 +3,7 @@
 from which_pyqt import PYQT_VER
 from weights import *
 from UnbandedSequencer import UnbandedSequencer
+from BandedSequencer import BandedSequencer
 
 if PYQT_VER == 'PYQT5':
 	from PyQt5.QtCore import QLineF, QPointF
@@ -48,11 +49,11 @@ class GeneSequencing:
 		# print(score)
 		# sequencer.reverseStrings()
 		
-		for i in range(len(sequences)):
-		# for i in range(10):
+		# for i in range(len(sequences)):
+		for i in range(2):
 			jresults = []
-			for j in range(len(sequences)):
-			# for j in range(6):
+			# for j in range(len(sequences)):
+			for j in range(2):
 
 				if(j < i):
 					s = {}
@@ -65,37 +66,45 @@ class GeneSequencing:
 					print("at ", i , " and ", j)
 ###################################################################################################
 # your code should replace these three statements and populate the three variables: score, alignment1 and alignment2
-					sequencer = UnbandedSequencer(sequences[i][:align_length], sequences[j][:align_length])
-					# print(sequencer.seq1)
-					# print(sequencer.seq2)
-					print("filling")
-					sequencer.fill()
-					print("done filling")
-					# sequencer.printTable()
-					row = len(sequencer.table) - 1
-					col = len(sequencer.table[0]) - 1
-					# sequencer.printTable()
-					print("building at ", row, " , ", col)
-					sequencer.build(row, col)
-					print("done building")
-					alignment1 = sequencer.iString
-					if(len(alignment1) > 100):
-						alignment1 = alignment1[:100]
-					alignment2 = sequencer.jString
-					if(len(alignment2) > 100):
-						alignment2 = alignment2[:100]
-					print("alignment1 ", alignment1)
-					print("alignment2 ", alignment2)
-					score = sequencer.score
-					print("score ", score)
-					# alignment1 = 'abc-easy  DEBUG:(seq{}, {} chars,align_len={}{})'.format(i+1,
-					# 	len(sequences[i]), align_length, ',BANDED' if banded else '')
-					# alignment2 = 'as-123--  DEBUG:(seq{}, {} chars,align_len={}{})'.format(j+1,
-					# 	len(sequences[j]), align_length, ',BANDED' if banded else '')
-###################################################################################################					
-					s = {'align_cost':score, 'seqi_first100':alignment1, 'seqj_first100':alignment2}
-					table.item(i,j).setText('{}'.format(int(score) if score != math.inf else score))
-					table.update()	
+					if banded:
+						sequencer = BandedSequencer(sequences[i][:align_length], sequences[j][:align_length])
+						s = {'align_cost':1, 'seqi_first100':"", 'seqj_first100':""}
+						# print("filling band")
+						# sequencer.fill()
+						# print("done filling band")
+						sequencer.printBand()
+					else:
+						sequencer = UnbandedSequencer(sequences[i][:align_length], sequences[j][:align_length])
+						# print(sequencer.seq1)
+						# print(sequencer.seq2)
+						print("filling")
+						sequencer.fill()
+						print("done filling")
+						# sequencer.printTable()
+						row = len(sequencer.table) - 1
+						col = len(sequencer.table[0]) - 1
+						# sequencer.printTable()
+						print("building at ", row, " , ", col)
+						sequencer.build(row, col)
+						print("done building")
+						alignment1 = sequencer.iString
+						if(len(alignment1) > 100):
+							alignment1 = alignment1[:100]
+						alignment2 = sequencer.jString
+						if(len(alignment2) > 100):
+							alignment2 = alignment2[:100]
+						print("alignment1 ", alignment1)
+						print("alignment2 ", alignment2)
+						score = sequencer.score
+						print("score ", score)
+						# alignment1 = 'abc-easy  DEBUG:(seq{}, {} chars,align_len={}{})'.format(i+1,
+						# 	len(sequences[i]), align_length, ',BANDED' if banded else '')
+						# alignment2 = 'as-123--  DEBUG:(seq{}, {} chars,align_len={}{})'.format(j+1,
+						# 	len(sequences[j]), align_length, ',BANDED' if banded else '')
+	###################################################################################################					
+						s = {'align_cost':score, 'seqi_first100':alignment1, 'seqj_first100':alignment2}
+						table.item(i,j).setText('{}'.format(int(score) if score != math.inf else score))
+						table.update()	
 				jresults.append(s)
 			results.append(jresults)
 		return results
